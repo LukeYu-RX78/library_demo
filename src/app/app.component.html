@@ -1,6 +1,12 @@
-<h1>{{ title }}</h1>
-<ag-grid-angular
-  class="demo-grid ag-theme-alpine"
-  [rowData]="rowData"
-  [columnDefs]="colDefs">
-</ag-grid-angular>
+<div class="demo">
+  <h1>{{ title }}</h1>
+  <ag-grid-angular
+    class="demo-grid ag-theme-alpine"
+    [rowData]="rowData"
+    [columnDefs]="colDefs"
+    [pagination]="true"
+    [paginationPageSize]="paginationPageSize"
+    [paginationPageSizeSelector]="paginationPageSizeSelector"
+    [paginationNumberFormatter]="paginationNumberFormatter"
+  />
+</div>>

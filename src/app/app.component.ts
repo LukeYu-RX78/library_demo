@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import {AgGridAngular} from "ag-grid-angular";
-import {ColDef, ColGroupDef} from "ag-grid-community";
+import {ColDef, ColGroupDef, PaginationNumberFormatterParams} from "ag-grid-community";
 import transactionData from '../data/transactions.json';
 import accountsData from '../data/accounts.json';
 
@@ -16,6 +16,9 @@ import accountsData from '../data/accounts.json';
 
 export class AppComponent {
   title = 'Transaction Record';
+
+  paginationPageSize = 20;
+  paginationPageSizeSelector: number[] | boolean = [20, 50, 100];
   accountInfo = new Map(accountsData.map(acc => [acc._id, acc]));
 
   rowData: any[] = [];
@@ -24,6 +27,7 @@ export class AppComponent {
     { field: '_id', headerName: 'ID' },
     { field: 'direction', headerName: 'Direction' },
     { field: 'description', headerName: 'Description' },
+    { field: 'accountId', headerName: 'Account ID'},
     { field: 'accountName', headerName: 'Account Name' },
     { field: '_revalTransaction', headerName: 'Reveal Transaction' },
     { headerName: 'Actual Quantity',
@@ -59,7 +63,7 @@ export class AppComponent {
     { field: 'classifications', headerName: 'Classifications'}
   ];
 
-  phaseOriginData(): void {
+  private phaseData(): void {
     this.rowData = transactionData.map(item => {
       // 从Map中根据accountId找到相应的账户信息
       const accountInfo = this.accountInfo.get(item.accountId)!;
@@ -82,7 +86,7 @@ export class AppComponent {
     });
   }
 
-  dateTransformer(date: any): string {
+  private dateTransformer(date: any): string {
     if (typeof date === 'string') {
       return date;
     } else if (date && typeof date === 'object') {
@@ -94,11 +98,17 @@ export class AppComponent {
     return '-';
   }
 
-  classificationsTransformer(classifications: string[]): string {
+  private classificationsTransformer(classifications: string[]): string {
     return classifications.map(c => c.slice(-1)).join(', ');
   }
 
+  public paginationNumberFormatter: (
+    params: PaginationNumberFormatterParams
+  ) => string = (params: PaginationNumberFormatterParams) => {
+    return '[' + params.value.toLocaleString() + ']';
+  };
+
   constructor() {
-    this.phaseOriginData();
+    this.phaseData();
   }
 }
