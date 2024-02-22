@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import {AgGridAngular} from "ag-grid-angular";
-import {ColDef} from "ag-grid-community";
+import {ColDef, ColGroupDef} from "ag-grid-community";
 import transactionData from '../data/transactions.json';
+import accountsData from '../data/accounts.json';
 
 @Component({
   selector: 'app-root',
@@ -15,39 +16,70 @@ import transactionData from '../data/transactions.json';
 
 export class AppComponent {
   title = 'Transaction Record';
-  originData: any[] = transactionData;
+  accountInfo = new Map(accountsData.map(acc => [acc._id, acc]));
+
   rowData: any[] = [];
 
-  colDefs: ColDef[] = [
+  colDefs: (ColDef | ColGroupDef)[] = [
     { field: '_id', headerName: 'ID' },
     { field: 'direction', headerName: 'Direction' },
     { field: 'description', headerName: 'Description' },
-    { field: 'accountId', headerName: 'Account ID' },
+    { field: 'accountName', headerName: 'Account Name' },
     { field: '_revalTransaction', headerName: 'Reveal Transaction' },
-    {field: '_quantity', headerName: 'Quantity'},
-    {field: '_valuation', headerName: 'Valuation'},
+    { headerName: 'Actual Quantity',
+      children: [
+        { field: '_quantity._actualQuantity._amount', headerName: 'Amount' },
+        { field: '_quantity._actualQuantity._precision', headerName: 'Precision' },
+        { field: '_quantity._actualQuantity._symbol', headerName: 'Currency Symbol' },
+      ]
+    },
+    { field: '_currency', headerName: 'Currency'},
+    { headerName: 'Valuation',
+      children: [
+        {
+          headerName: 'Value',
+          children: [
+            { field: '_valuation._value._amount', headerName: 'Amount' },
+            { field: '_valuation._value._precision', headerName: 'Precision' },
+            { field: '_valuation._value._symbol', headerName: 'Currency' },
+          ]
+        },
+        {
+          headerName: 'Normalized Value',
+          children: [
+            { field: '_valuation._normalizedValue._amount', headerName: 'Amount' },
+            { field: '_valuation._normalizedValue._precision', headerName: 'Precision' },
+            { field: '_valuation._normalizedValue._symbol', headerName: 'Currency' },
+          ]
+        }
+      ]
+    },
     { field: '_transactionDate', headerName: 'Transaction Date' },
     { field: 'category', headerName: 'Category' },
-    {field: 'classifications', headerName: 'Classifications'}
+    { field: 'classifications', headerName: 'Classifications'}
   ];
 
-  stringifyObject(obj: any): string {
-    return Object.entries(obj).map(([key, value]) => {
-      if (typeof value === 'object' && value !== null) {
-        return `${key}: ${this.stringifyObject(value)}`;
-      }
-      return `${key}: ${value}`;
-    }).join(', ');
-  }
-
   phaseOriginData(): void {
-    this.rowData = this.originData.map(item => ({
-      ...item,
-      _quantity: this.stringifyObject(item._quantity),
-      _valuation: this.stringifyObject(item._valuation),
-      _transactionDate: this.dateTransformer(item._transactionDate),
-      classifications: this.classificationsTransformer(item.classifications)
-    }));
+    this.rowData = transactionData.map(item => {
+      // 从Map中根据accountId找到相应的账户信息
+      const accountInfo = this.accountInfo.get(item.accountId)!;
+      return {
+        ...item,
+        accountName: accountInfo.name, // 使用账户信息中的名称替换原有的 accountId
+        _currency: accountInfo.currency, // 添加账户的货币信息
+        '_quantity._actualQuantity._amount': item._quantity._actualQuantity._amount,
+        '_quantity._actualQuantity._precision': item._quantity._actualQuantity._precision,
+        '_quantity._actualQuantity._symbol': item._quantity._actualQuantity._symbol,
+        '_valuation._value._amount': item._valuation._value._amount,
+        '_valuation._value._precision': item._valuation._value._precision,
+        '_valuation._value._symbol': item._valuation._value._symbol,
+        '_valuation._normalizedValue._amount': item._valuation._normalizedValue._amount,
+        '_valuation._normalizedValue._precision': item._valuation._normalizedValue._precision,
+        '_valuation._normalizedValue._symbol': item._valuation._normalizedValue._symbol,
+        _transactionDate: this.dateTransformer(item._transactionDate),
+        classifications: this.classificationsTransformer(item.classifications),
+      };
+    });
   }
 
   dateTransformer(date: any): string {
