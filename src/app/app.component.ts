@@ -29,6 +29,8 @@ export class AppComponent {
     { field: 'description', headerName: 'Description' },
     { field: 'accountId', headerName: 'Account ID'},
     { field: 'accountName', headerName: 'Account Name' },
+    { field: '_timezone', headerName: 'Account Timezone'},
+    { field: '_currency', headerName: 'Account Currency'},
     { field: '_revalTransaction', headerName: 'Reveal Transaction' },
     { headerName: 'Actual Quantity',
       children: [
@@ -37,7 +39,6 @@ export class AppComponent {
         { field: '_quantity._actualQuantity._symbol', headerName: 'Currency Symbol' },
       ]
     },
-    { field: '_currency', headerName: 'Currency'},
     { headerName: 'Valuation',
       children: [
         {
@@ -65,12 +66,12 @@ export class AppComponent {
 
   private phaseData(): void {
     this.rowData = transactionData.map(item => {
-      // 从Map中根据accountId找到相应的账户信息
       const accountInfo = this.accountInfo.get(item.accountId)!;
       return {
         ...item,
-        accountName: accountInfo.name, // 使用账户信息中的名称替换原有的 accountId
-        _currency: accountInfo.currency, // 添加账户的货币信息
+        accountName: accountInfo.name,
+        _timezone: accountInfo.timezone,
+        _currency: accountInfo.currency,
         '_quantity._actualQuantity._amount': item._quantity._actualQuantity._amount,
         '_quantity._actualQuantity._precision': item._quantity._actualQuantity._precision,
         '_quantity._actualQuantity._symbol': item._quantity._actualQuantity._symbol,
