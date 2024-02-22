@@ -45,8 +45,25 @@ export class AppComponent {
       ...item,
       _quantity: this.stringifyObject(item._quantity),
       _valuation: this.stringifyObject(item._valuation),
-      classifications: item.classifications.join(', ')
+      _transactionDate: this.dateTransformer(item._transactionDate),
+      classifications: this.classificationsTransformer(item.classifications)
     }));
+  }
+
+  dateTransformer(date: any): string {
+    if (typeof date === 'string') {
+      return date;
+    } else if (date && typeof date === 'object') {
+      let dateString = date.date || '';
+      let timeString = date.time ? ` ${date.time}` : '';
+      let tzString = date.tz ? ` ${date.tz}` : '';
+      return `${dateString}${timeString}${tzString}`;
+    }
+    return '-';
+  }
+
+  classificationsTransformer(classifications: string[]): string {
+    return classifications.map(c => c.slice(-1)).join(', ');
   }
 
   constructor() {
